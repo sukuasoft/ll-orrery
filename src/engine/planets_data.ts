@@ -148,6 +148,7 @@ export const sun: TypeObjectData = {
 
 };
 
+
 export const objects = [
     sun,
     ...planets

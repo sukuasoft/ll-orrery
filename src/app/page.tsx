@@ -8,6 +8,9 @@ import { initPlanets, updatePlanetsPosition } from "@/engine/planets";
 import { objects, TypeObjectData } from "@/engine/planets_data";
 import Image from "next/image";
 import icon from "@/assets/icon.png";
+import { animateParticules, generateParticules } from "@/engine/particules";
+import Link from "next/link";
+import quiz_icon from "@/assets/quiz.png";
 
 var _scene: THREE.Scene | null = null;
 var _planets: any[] = [];
@@ -34,6 +37,9 @@ export default function Home() {
 
     // Iniciar Luz
     initLight(scene);
+
+    // Iniciar particulas
+    const particuleSystem = generateParticules(scene);
 
     //Criando Rendezidor anti-aliasing
     const renderer = initRenderer(sceneRef.current);
@@ -103,7 +109,7 @@ export default function Home() {
 
           camera.position.set(
             targetPosition.x,
-            targetPosition.y,
+            targetPosition.y+10,
             targetPosition.z + 80
           );
 
@@ -136,6 +142,7 @@ export default function Home() {
 
       requestAnimationFrame(animate);
       updatePlanetsPosition(_planets, (timestamp - startTime) * 0.0005);
+      animateParticules(particuleSystem);
 
       controls.update();
       renderer.render(scene, camera);
@@ -155,8 +162,6 @@ export default function Home() {
 
   useEffect(() => {
     document.body.onclick = () => {
-
-      return;
       if (isPlay) return;
       const audio = new Audio("/sounds/bg.mp3")
       audio.loop = true;
@@ -204,6 +209,12 @@ export default function Home() {
         {/**
         <div className="bg-zinc-900 ml-auto
           rounded-lg px-2 py-1">{Math.round((carregados / objects.length) * 100)}% carregado</div> */}
+          <Link href='https://luandalunar.com/quiz'
+          className="bg-zinc-900 ml-auto
+          rounded-lg px-4 py-2 items-center gap-2 flex
+          active:scale-110" target="_blank">
+            <Image src={quiz_icon} className="invert" width={24} alt='' />
+            Quiz</Link>
       </div>
       <div className="flex gap-2 h-full">
         <div className="bg-zinc-950 h-full rounded-xl
