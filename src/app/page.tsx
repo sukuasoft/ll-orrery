@@ -11,6 +11,7 @@ import icon from "@/assets/icon.png";
 import { animateParticules, generateParticules } from "@/engine/particules";
 import Link from "next/link";
 import quiz_icon from "@/assets/quiz.png";
+import vr_icon from "@/assets/vr.png";
 
 var _scene: THREE.Scene | null = null;
 var _planets: any[] = [];
@@ -109,7 +110,7 @@ export default function Home() {
 
           camera.position.set(
             targetPosition.x,
-            targetPosition.y+10,
+            targetPosition.y + 10,
             targetPosition.z + 80
           );
 
@@ -209,12 +210,23 @@ export default function Home() {
         {/**
         <div className="bg-zinc-900 ml-auto
           rounded-lg px-2 py-1">{Math.round((carregados / objects.length) * 100)}% carregado</div> */}
+        <div className="flex gap-2 ml-auto">
+          <Link href='https://luandalunar.com/simulacoes'
+            className="bg-zinc-900 
+          rounded-lg px-4 py-2 items-center gap-2 flex
+          active:scale-110" target="_blank">
+            <Image src={vr_icon} className="invert" width={24} alt='' />
+            VR</Link>
+
           <Link href='https://luandalunar.com/quiz'
-          className="bg-zinc-900 ml-auto
+            className="bg-zinc-900
           rounded-lg px-4 py-2 items-center gap-2 flex
           active:scale-110" target="_blank">
             <Image src={quiz_icon} className="invert" width={24} alt='' />
             Quiz</Link>
+
+        </div>
+
       </div>
       <div className="flex gap-2 h-full">
         <div className="bg-zinc-950 h-full rounded-xl
