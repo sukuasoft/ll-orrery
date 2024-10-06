@@ -3,7 +3,7 @@ import { objects, TypeObjectData } from "./planets_data";
 import { fbxLoader, textureLoader } from "./loaders";
 import { degToRad } from "three/src/math/MathUtils.js";
 
-const scaleMultiplier = 10 * 8;
+export const scaleMultiplier = 10 * 8;
 
 
 export async function initPlanets(scene: Scene, setCarregados: any) {
@@ -30,7 +30,7 @@ export async function addPlanet(scene: Scene, data: TypeObjectData) {
         if (_object.isMesh) {
             const materialData: any = {
                 map: texture, 
-                emissiveIntensity: 20
+              //  emissiveIntensity: 20
             };
             if (data.bump) {
                 const bumpTexture = await textureLoader.loadAsync(data.bump);
