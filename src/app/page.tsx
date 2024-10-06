@@ -98,7 +98,7 @@ export default function Home() {
             <div className="flex items-center gap-3 select-none mb-4 flex-col">
               <Image className=" brightness-0 invert" width={120} src={icon} alt='' />
 
-              <h1 className="font-bold text-2xl text-center"> Orerry</h1>
+              <h1 className="font-bold text-2xl text-center"> Orrery</h1>
             </div>
 
             <div className=" animate-bounce text-zinc-400 text-center">Carregando...</div>
@@ -120,7 +120,7 @@ export default function Home() {
         <div className="flex items-center gap-3 select-none">
           <Image className=" brightness-0 invert" width={80} src={icon} alt='' />
 
-          <h1 className="font-bold text-xl"> Orerry</h1>
+          <h1 className="font-bold text-xl"> Orrery</h1>
         </div>
         {/**
         <div className="bg-zinc-900 ml-auto
