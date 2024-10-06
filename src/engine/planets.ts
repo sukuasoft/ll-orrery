@@ -18,8 +18,6 @@ export async function initPlanets(scene: Scene, setCarregados: any) {
     }
 
     return _objects;
-
-    ;
 }
 
 export async function addPlanet(scene: Scene, data: TypeObjectData) {
@@ -27,6 +25,8 @@ export async function addPlanet(scene: Scene, data: TypeObjectData) {
 
     const object = await fbxLoader.loadAsync(data.mesh);
     object.traverse(async (_object: any) => {
+        _object.name=data.name;
+
         if (_object.isMesh) {
             const materialData: any = {
                 map: texture, 
@@ -79,8 +79,8 @@ export async function addPlanet(scene: Scene, data: TypeObjectData) {
 */
 
 
-    const ring = new Mesh(new RingGeometry(_z - 0.1, _z, 32),
-        new MeshBasicMaterial({ color: 0xffffff, side: DoubleSide, 
+    const ring = new Mesh(new RingGeometry(_z - 0.5, _z, 32),
+        new MeshBasicMaterial({ color: new Color(data.color), side: DoubleSide, 
             
          }));
     ring.rotation.set(degToRad(90), 0, 0);

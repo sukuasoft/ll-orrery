@@ -5,18 +5,21 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { initCamera, initLight, initRenderer, initScene } from "@/engine/init";
 import { initPlanets, updatePlanetsPosition } from "@/engine/planets";
-import { objects } from "@/engine/planets_data";
+import { objects, TypeObjectData } from "@/engine/planets_data";
 import Image from "next/image";
 import icon from "@/assets/icon.png";
 
 var _scene: THREE.Scene | null = null;
 var _planets: any[] = [];
 var isPlay = false;
+var lastObjectSelected: any = null;
 
 export default function Home() {
 
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const [carregados, setCarregados] = useState(0);
+  const [currentObject, setCurrentObject] = useState<TypeObjectData | null | undefined>(null);
+
 
 
   async function _initScene() {
@@ -45,9 +48,83 @@ export default function Home() {
 
     sceneRef.current.appendChild(renderer.domElement);
 
+    // Raycast 
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+
+    // Função para detectar clique
+    function onClick(event: any) {
+      if (sceneRef.current) {
+        const rect = sceneRef.current.getBoundingClientRect();
+
+        const mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        const mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        mouse.x = mouseX;
+        mouse.y = mouseY;
+
+
+        raycaster.setFromCamera(mouse, camera);
+
+        const _objects = _planets.map((_plan) => {
+          return _plan.object;
+        })
+
+
+        const intersects = raycaster.intersectObjects(_objects);
+
+        // Verifica se houve uma interseção
+        if (intersects.length > 0) {
+          const clickedObject: any = intersects[0].object;
+
+          if (lastObjectSelected) {
+
+            if (lastObjectSelected.name == clickedObject.name) {
+              lastObjectSelected.material.color.set(0xffffff);
+              lastObjectSelected = null;
+              setCurrentObject(null);
+              return;
+            }
+            lastObjectSelected.material.color.set(0xffffff);
+
+          }
+
+          setCurrentObject(objects.find((_obj: TypeObjectData) => {
+            if (_obj.name == clickedObject.name) {
+              return true;
+            }
+            return false;
+          }));
+          clickedObject.material.color.set(0x505050);
+
+          const targetPosition = new THREE.Vector3();
+          clickedObject.getWorldPosition(targetPosition);
+
+          camera.position.set(
+            targetPosition.x,
+            targetPosition.y,
+            targetPosition.z + 80
+          );
+
+          // Opcionalmente, fazer a câmera olhar para o objeto
+          camera.lookAt(targetPosition);
+
+          lastObjectSelected = clickedObject;
+
+
+          //clickedObject.material.color.set(0xff0000); 
+        }
+
+      }
+
+
+    }
+
+    // Adiciona o evento de clique
+    sceneRef.current.addEventListener('click', onClick);
+
     //Objectos 
-
-
     initPlanets(scene, setCarregados).then((_plas) => {
       _planets = _plas;
     });
@@ -78,6 +155,8 @@ export default function Home() {
 
   useEffect(() => {
     document.body.onclick = () => {
+
+      return;
       if (isPlay) return;
       const audio = new Audio("/sounds/bg.mp3")
       audio.loop = true;
@@ -101,7 +180,7 @@ export default function Home() {
               <h1 className="font-bold text-2xl text-center"> Orrery</h1>
             </div>
 
-            <div className=" animate-bounce text-zinc-400 text-center">Carregando...</div>
+            <div className=" animate-bounce text-zinc-400 text-center">Loading...</div>
             <div className="w-[200px] bg-[#303030] h-1  rounded-xl mt-4  overflow-hidden ">
               <div style={{
                 width: `${Math.round((carregados / objects.length) * 100)}%`
@@ -134,8 +213,37 @@ export default function Home() {
 
         </div>
 
-        <div className="border border-[#292929] bg-zinc-950 h-full rounded-xl
-         w-[300px]">
+        <div className="bg-[#181818]
+        border border-zinc-800 h-full rounded-xl
+         w-[350px] px-3 py-2">
+          {
+            currentObject && (
+
+              <>
+                <p className="font-bold text-xl pb-2 border-b border-zinc-900 border-solid">  {currentObject.name}</p>
+                <div className="mt-4 text-xs">{currentObject.description}</div>
+                <div className="grid grid-cols-2 mt-6 gap-2 ">
+                  <div className="text-center text-sm bg-zinc-800 px-2 py-1 rounded-lg
+                      shadow-md">
+                    <p className="text-zinc-500 uppercase select-none">Distance</p>
+                    <p className="text-xs">{(currentObject.distance * 149600000).toLocaleString('en')} km</p>
+                  </div>
+
+                  <div className="text-center text-sm bg-zinc-800 px-2 py-1 rounded-lg
+                      shadow-md">
+                    <p className="text-zinc-500 uppercase select-none">Diameter</p>
+                    <p className="text-xs">~{(currentObject.scale * 12742).toLocaleString('en')} km</p>
+                  </div>
+
+                  <div className="text-center text-sm bg-zinc-800 px-2 py-1 rounded-lg
+                      shadow-md col-span-2">
+                    <p className="text-zinc-500 uppercase select-none">Mass</p>
+                    <p className="text-xs">~{(currentObject.mass * 1.989).toLocaleString('en')}  quintillion tons</p>
+                  </div>
+                </div>
+              </>
+            )
+          }
 
         </div>
       </div>
