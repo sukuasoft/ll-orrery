@@ -12,9 +12,11 @@ import { animateParticules, generateParticules } from "@/engine/particules";
 import Link from "next/link";
 import quiz_icon from "@/assets/quiz.png";
 import vr_icon from "@/assets/vr.png";
+import arrow_back from "@/assets/arrow-back.png";
 
 var _scene: THREE.Scene | null = null;
-var _planets: any[] = [];
+var _camera: THREE.Camera | null = null;
+var __planets:any[] =[];
 var isPlay = false;
 var lastObjectSelected: any = null;
 
@@ -23,7 +25,50 @@ export default function Home() {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const [carregados, setCarregados] = useState(0);
   const [currentObject, setCurrentObject] = useState<TypeObjectData | null | undefined>(null);
+  const  [_planets, _setPlanets] = useState<any[]>([]);
 
+  function deselectLastObject(){
+    lastObjectSelected.material.color.set(0xffffff);
+    lastObjectSelected = null;
+    setCurrentObject(null);
+  }
+
+
+  function selectObject(clickedObject:any){
+    console.log(clickedObject);
+    if (lastObjectSelected) {
+
+      if (lastObjectSelected.name == clickedObject.name) {
+        deselectLastObject();
+        return;
+      }
+      lastObjectSelected.material.color.set(0xffffff);
+
+    }
+
+    setCurrentObject(objects.find((_obj: TypeObjectData) => {
+      if (_obj.name == clickedObject.name) {
+        return true;
+      }
+      return false;
+    }));
+    clickedObject.material.color.set(0x505050);
+
+    const targetPosition = new THREE.Vector3();
+    clickedObject.getWorldPosition(targetPosition);
+
+    _camera?.position.set(
+      targetPosition.x,
+      targetPosition.y + 10,
+      targetPosition.z + 80
+    );
+
+    // Opcionalmente, fazer a câmera olhar para o objeto
+    _camera?.lookAt(targetPosition);
+
+    lastObjectSelected = clickedObject;
+
+  }
 
 
   async function _initScene() {
@@ -35,6 +80,7 @@ export default function Home() {
 
     // Iniciar camera
     const camera = initCamera(scene);
+    _camera = camera;
 
     // Iniciar Luz
     initLight(scene);
@@ -74,7 +120,7 @@ export default function Home() {
 
         raycaster.setFromCamera(mouse, camera);
 
-        const _objects = _planets.map((_plan) => {
+        const _objects = __planets.map((_plan) => {
           return _plan.object;
         })
 
@@ -84,43 +130,8 @@ export default function Home() {
         // Verifica se houve uma interseção
         if (intersects.length > 0) {
           const clickedObject: any = intersects[0].object;
+          selectObject(clickedObject);
 
-          if (lastObjectSelected) {
-
-            if (lastObjectSelected.name == clickedObject.name) {
-              lastObjectSelected.material.color.set(0xffffff);
-              lastObjectSelected = null;
-              setCurrentObject(null);
-              return;
-            }
-            lastObjectSelected.material.color.set(0xffffff);
-
-          }
-
-          setCurrentObject(objects.find((_obj: TypeObjectData) => {
-            if (_obj.name == clickedObject.name) {
-              return true;
-            }
-            return false;
-          }));
-          clickedObject.material.color.set(0x505050);
-
-          const targetPosition = new THREE.Vector3();
-          clickedObject.getWorldPosition(targetPosition);
-
-          camera.position.set(
-            targetPosition.x,
-            targetPosition.y + 10,
-            targetPosition.z + 80
-          );
-
-          // Opcionalmente, fazer a câmera olhar para o objeto
-          camera.lookAt(targetPosition);
-
-          lastObjectSelected = clickedObject;
-
-
-          //clickedObject.material.color.set(0xff0000); 
         }
 
       }
@@ -133,7 +144,8 @@ export default function Home() {
 
     //Objectos 
     initPlanets(scene, setCarregados).then((_plas) => {
-      _planets = _plas;
+     _setPlanets(_plas);
+     __planets=_plas;
     });
     let startTime: any = null;
     function animate(timestamp: any) {
@@ -142,7 +154,7 @@ export default function Home() {
       }
 
       requestAnimationFrame(animate);
-      updatePlanetsPosition(_planets, (timestamp - startTime) * 0.0005);
+      updatePlanetsPosition(__planets, (timestamp - startTime) * 0.0005);
       animateParticules(particuleSystem);
 
       controls.update();
@@ -240,10 +252,15 @@ export default function Home() {
         border border-zinc-800 h-full rounded-xl
          w-[350px] px-3 py-2">
           {
-            currentObject && (
+            currentObject ? (
 
               <>
-                <p className="font-bold text-xl pb-2 border-b border-zinc-900 border-solid">  {currentObject.name}</p>
+                <div className="flex gap-2 pb-2 border-b border-zinc-800 border-solid">  
+                  <Image onClick={deselectLastObject} src={arrow_back} alt='' width={22} className="invert bg-opacity-80
+                  cursor-pointer hover:opacity-55
+                  active:scale-110"/>
+                  <span className="font-bold text-xl">{currentObject.name}</span>
+                </div>
                 <div className="mt-4 text-xs">{currentObject.description}</div>
                 <div className="grid grid-cols-2 mt-6 gap-2 ">
                   <div className="text-center text-sm bg-zinc-800 px-2 py-1 rounded-lg
@@ -265,6 +282,26 @@ export default function Home() {
                   </div>
                 </div>
               </>
+            ): (
+              <div>
+                              <p className="font-bold text-xl pb-2 border-b border-zinc-800 border-solid mb-2">Celestial Bodies</p>
+
+<div className="grid grid-cols-2 gap-4 px-4 py-1">
+                  
+                  {
+                    _planets.map(({object, data}:any, index)=>{
+                      return (
+                        <button onClick={()=>{
+                        selectObject(object.children[0]);
+                        }} type="button" key={index} className="bg-zinc-800 px-2 py-1 text-center
+                        shadow-md rounded-md text-sm">
+                            {data.name}
+                        </button>
+                      )
+                    })
+                  }
+                </div>
+              </div>
             )
           }
 
